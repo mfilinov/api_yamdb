@@ -1,11 +1,11 @@
 from django.db import models
 
 
-class Titles (models.Model):
-    name = models.CharField('Название', max_length=200)
+class Title (models.Model):
+    name = models.CharField('Название', max_length=256)
     year = models.IntegerField('Год')
     rating = models.FloatField('Рейтинг')
-    description = models.TextField('Описание')
+    description = models.TextField('Описание', blank=True)
 
     class Meta:
         verbose_name = 'произведение'
@@ -16,9 +16,9 @@ class Titles (models.Model):
 
 
 class Category (models.Model):
-    name = models.CharField('Категория', max_length=200)
-    slug = models.SlugField('Идентификатор', max_length=200)
-    title = models.ForeignKey(Titles, related_name='category')
+    name = models.CharField('Категория', max_length=256)
+    slug = models.SlugField('Идентификатор', unique=True, max_length=50)
+    title = models.ForeignKey(Title, related_name='category')
 
     class Meta:
         verbose_name = 'категория'
@@ -29,9 +29,9 @@ class Category (models.Model):
 
 
 class Genre (models.Model):
-    name = models.CharField('Жанр', max_length=200)
-    slug = models.SlugField('Идентификатор', max_length=200)
-    title = models.ManyToManyField(Titles, related_name='genre')
+    name = models.CharField('Жанр', max_length=256)
+    slug = models.SlugField('Идентификатор', unique=True, max_length=50)
+    title = models.ManyToManyField(Title, related_name='genre')
 
     class Meta:
         verbose_name = 'жанр'
