@@ -104,3 +104,6 @@ SIMPLE_JWT = {
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+TEXT_MAX_LENGTH = 30
