@@ -17,3 +17,11 @@ class CategoryViewSet(viewsets.CreateListViewSet):
 class GenreViewSet(viewsets.CreateListViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    ...
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    ...
