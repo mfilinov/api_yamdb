@@ -1,6 +1,8 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 
+from .mixins import CreateListViewSet
+
 from api.serializers import (
     CategorySerializer,
     CommentSerializer,
@@ -16,12 +18,12 @@ class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
 
 
-class CategoryViewSet(viewsets.CreateListViewSet):
+class CategoryViewSet(CreateListViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
 
-class GenreViewSet(viewsets.CreateListViewSet):
+class GenreViewSet(CreateListViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
 
