@@ -1,7 +1,8 @@
 from django.urls import include, path
 from rest_framework import routers
 
-from api.views import CommentViewSet, ReviewViewSet
+from .views import (CommentViewSet, ReviewViewSet,
+                    TitleViewSet, CategoryViewSet, GenreViewSet)
 
 router = routers.DefaultRouter()
 router.register(
@@ -14,6 +15,22 @@ router.register(
     CommentViewSet,
     basename='comments'
 )
+router.register(
+    r'titles',
+    TitleViewSet,
+    basename='titles'
+)
+router.register(
+    r'categories',
+    CategoryViewSet,
+    basename='categories'
+)
+router.register(
+    r'genres',
+    GenreViewSet,
+    basename='genres'
+)
+
 
 urlpatterns = [
     path('v1/', include(router.urls))
