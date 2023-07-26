@@ -24,7 +24,11 @@ class Title(models.Model):
 class Category(models.Model):
     name = models.CharField('Категория', max_length=256)
     slug = models.SlugField('Идентификатор', unique=True, max_length=50)
-    title = models.ForeignKey(Title, related_name='category')
+    title = models.ForeignKey(
+        Title,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='category')
 
     class Meta:
         verbose_name = 'категория'
