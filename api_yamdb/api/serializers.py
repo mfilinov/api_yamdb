@@ -1,6 +1,6 @@
 from rest_framework import serializers
-
-from reviews.models import Title, Category, Genre
+from rest_framework.validators import UniqueTogetherValidator
+from reviews.models import Title, Category, Genre, Comment, Review
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -25,10 +25,6 @@ class TitleSerializer(serializers.ModelSerializer):
         model = Title
         fields = ('id', 'name', 'year', 'rating', 'description',
                   'genre', 'category')
-from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
-
-from reviews.models import Comment, Title, Review
 
 
 class ReviewSerializer(serializers.ModelSerializer):
