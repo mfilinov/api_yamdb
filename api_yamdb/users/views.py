@@ -31,7 +31,9 @@ class TokenView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = TokenSerializer(data=request.data)
         if serializer.is_valid():
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(
+                serializer.validated_data,
+                status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
