@@ -21,11 +21,13 @@ class TitleViewSet(viewsets.ModelViewSet):
 class CategoryViewSet(CreateListViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    lookup_field = 'slug'
 
 
 class GenreViewSet(CreateListViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+    lookup_field = 'slug'
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
