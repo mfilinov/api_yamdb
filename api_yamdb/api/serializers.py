@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
 from reviews.models import Title, Category, Genre, Comment, Review
 
 
@@ -32,35 +31,32 @@ class TitleSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     """Serializer для модели Review."""
     author = serializers.SlugRelatedField(
-        slug_field='username',
         read_only=True
-    )
-    title = serializers.SlugRelatedField(
-        queryset=Title.objects.all(),
-        slug_field='name'
     )
 
     class Meta:
         model = Review
-        fields = '__all__'
-        read_only_fields = ['title']
-        #  Каждый пользователь может оставить только один отзыв на произведение
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Review.objects.all(),
-                fields=('author', 'title')
-            )
-        ]
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
+
+    def validate(self, data):
+        """Запрещает дублирование отзыва."""
+        if self.context.get('request').method == 'POST':
+            if Review.objects.filter(
+                author=self.context.get('request').user,
+                title=self.context.get('view').kwargs.get('title_id')
+            ).exists():
+                raise serializers.ValidationError(
+                    'Вы уже оставляли отзыв на это произведение.'
+                )
+        return data
 
 
 class CommentSerializer(serializers.ModelSerializer):
     """Serializer для модели Comment."""
     author = serializers.SlugRelatedField(
-        slug_field='username',
         read_only=True
     )
 
     class Meta:
         model = Comment
-        fields = '__all__'
-        read_only_fields = ['review']
+        fields = ('id', 'text', 'author', 'pub_date')
