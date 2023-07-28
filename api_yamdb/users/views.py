@@ -1,30 +1,40 @@
+from rest_framework.filters import SearchFilter
 from rest_framework.mixins import CreateModelMixin
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework import status
-from django.core.mail import send_mail
 
 from users.models import User
-from users.serializers import UserSerializer, TokenSerializer
-from users.utils import generate_activation_code
+from users.serializers import (
+    TokenSerializer,
+    CustomUserSerializer,
+    UserSerializer)
+from users.utils import send_confirmation_code
+
+
+class UsersPaginator(PageNumberPagination):
+    page_size = 10
 
 
 class SignupViewSet(CreateModelMixin, GenericViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = CustomUserSerializer
 
     def create(self, request, *args, **kwargs):
-        response = super().create(request, *args, **kwargs)
-        response.status_code = status.HTTP_200_OK
-        confirmation_code = generate_activation_code(response.data['username'])
-        send_mail(
-            subject='Register',
-            message=f'Registration success, your {confirmation_code=}',
-            from_email='yamdb@yamdb.ru',
-            recipient_list=[response.data['email']],
-            fail_silently=True)
-        return response
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        # validated_data может содержать текущий объект пользователя
+        if isinstance(serializer.validated_data, dict):
+            self.perform_create(serializer)
+        send_confirmation_code(serializer.data['username'],
+                               serializer.data['email'])
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK,
+            headers=headers)
 
 
 class TokenView(APIView):
@@ -37,3 +47,12 @@ class TokenView(APIView):
         else:
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
+
+
+class UsersViewSet(ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    lookup_field = 'username'
+    pagination_class = UsersPaginator
+    filter_backends = (SearchFilter,)
+    search_fields = ('username',)

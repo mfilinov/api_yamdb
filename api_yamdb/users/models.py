@@ -18,7 +18,7 @@ class User(AbstractUser):
             'Letters, digits and @/./- only.'),
         validators=[validate_email],
         error_messages={
-            'unique': "A user with that email already exists.",
+            'unique': 'Пользователь с таким email уже существует.',
         },
     )
 

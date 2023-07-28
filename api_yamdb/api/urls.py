@@ -1,7 +1,7 @@
 from django.urls import include, path
 from rest_framework import routers
 
-from users.views import SignupViewSet, TokenView
+from users.views import SignupViewSet, TokenView, UsersViewSet
 from .views import (CommentViewSet, ReviewViewSet,
                     TitleViewSet, CategoryViewSet, GenreViewSet)
 
@@ -35,6 +35,11 @@ router.register(
     r'auth/signup',
     SignupViewSet,
     basename='signup'
+)
+router.register(
+    r'users',
+    UsersViewSet,
+    basename='users'
 )
 
 
