@@ -2,7 +2,7 @@ from django_filters import rest_framework
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from django.db.models import Avg
-from rest_framework import filters, viewsets, status, permissions
+from rest_framework import filters, viewsets, permissions
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
@@ -42,14 +42,6 @@ class TitleViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'partial_update']:
             return TitlePostSerializer
         return TitleSerializer
-
-    def partial_update(self, request, *args, **kwargs):
-        title = self.get_object()
-        serializer = self.get_serializer(title, data=request.data,
-                                         partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, *args, **kwargs):
         title = self.get_object()
