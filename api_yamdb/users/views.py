@@ -1,16 +1,22 @@
+from django.forms import model_to_dict
 from rest_framework.filters import SearchFilter
-from rest_framework.mixins import CreateModelMixin
+from rest_framework.generics import RetrieveUpdateAPIView
+from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, \
+    UpdateModelMixin
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.settings import api_settings
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework import status
 
 from users.models import User
+from users.permissions import IsAdminUser
 from users.serializers import (
     TokenSerializer,
     CustomUserSerializer,
-    UserSerializer)
+    UserSerializer, UsersSerializer)
 from users.utils import send_confirmation_code
 
 
@@ -51,8 +57,22 @@ class TokenView(APIView):
 
 class UsersViewSet(ModelViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UsersSerializer
+    # Запрещен method PUT
+    http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options',
+                         'trace']
+    permission_classes = [IsAdminUser]
     lookup_field = 'username'
     pagination_class = UsersPaginator
     filter_backends = (SearchFilter,)
     search_fields = ('username',)
+
+
+class CurrentUserView(RetrieveUpdateAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+    # Запрещен method PUT
+    http_method_names = ['get', 'patch', 'head', 'options', 'trace']
+
+    def get_object(self):
+        return self.request.user

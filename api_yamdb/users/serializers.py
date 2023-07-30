@@ -53,7 +53,7 @@ class CustomUserSerializer(serializers.Serializer):
         return User.objects.create(**validated_data)
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('username',
@@ -65,6 +65,13 @@ class UserSerializer(serializers.ModelSerializer):
 
     def validate_username(self, value):
         return validate_username_include_me(value)
+
+
+class UserSerializer(UsersSerializer):
+    class Meta:
+        model = User
+        fields = UsersSerializer.Meta.fields
+        read_only_fields = ('role',)
 
 
 class TokenSerializer(serializers.Serializer):
