@@ -1,12 +1,9 @@
-from django.forms import model_to_dict
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import RetrieveUpdateAPIView
-from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, \
-    UpdateModelMixin
+from rest_framework.mixins import CreateModelMixin
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.settings import api_settings
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework import status
