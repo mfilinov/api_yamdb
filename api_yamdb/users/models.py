@@ -5,9 +5,9 @@ from django.db import models
 
 class User(AbstractUser):
     class Role(models.TextChoices):
-        USER = 'user',
-        MODERATOR = 'moderator',
-        ADMIN = 'admin',
+        USER = 'user', 'Пользователь'
+        MODERATOR = 'moderator', 'Модератор'
+        ADMIN = 'admin', 'Админ'
 
     email = models.EmailField(
         'email address',
@@ -22,10 +22,14 @@ class User(AbstractUser):
         },
     )
 
-    bio = models.TextField('About', blank=True)
+    bio = models.TextField('О себе', blank=True)
     role = models.CharField(
-        'Choose a role',
+        'Выберите роль',
         choices=Role.choices,
         default=Role.USER,
         max_length=128,
     )
+
+    class Meta:
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
