@@ -19,53 +19,64 @@ class Command(BaseCommand):
         )
 
     def _import_users(self):
-        with open('static/data/users.csv') as f:
+        with open('D:/Dev/api_yamdb/api_yamdb/static/data/users.csv') as f:
             reader = csv.DictReader(f)
             User.objects.bulk_create([User(**row) for row in reader])
         self.stdout.write('Пользователи успешно добавлены')
 
     def _import_categories(self):
-        with open('static/data/category.csv') as f:
+        fieldnames = ('id', 'name', 'slug')
+        with open('D:/Dev/api_yamdb/api_yamdb/static/data/category.csv', encoding="utf8") as f:
             reader = csv.DictReader(f)
+            reader.fieldnames = fieldnames
+            next(reader)
             Category.objects.bulk_create([Category(**row) for row in reader])
         self.stdout.write('Категории успешно добавлены')
 
     def _import_titles(self):
-        with open('static/data/titles.csv') as f:
+        fieldnames = ('id', 'name', 'year', 'category_id')
+        with open('D:/Dev/api_yamdb/api_yamdb/static/data/titles.csv', encoding="utf8") as f:
             reader = csv.DictReader(f)
+            reader.fieldnames = fieldnames
+            next(reader)
             Title.objects.bulk_create([Title(**row) for row in reader])
         self.stdout.write('Статьи успешно добавлены')
 
     def _import_genres(self):
-        with open('static/data/genre.csv') as f:
+        fieldnames = ('id', 'name', 'slug')
+        with open('D:/Dev/api_yamdb/api_yamdb/static/data/genre.csv', encoding="utf8") as f:
             reader = csv.DictReader(f)
+            reader.fieldnames = fieldnames
+            next(reader)
             Genre.objects.bulk_create([Genre(**row) for row in reader])
         self.stdout.write('Жанры успешно добавлены')
 
-    def _import_comments(self):
-        with open('static/data/comments.csv') as f:
-            reader = csv.DictReader(f)
-            Comment.objects.bulk_create([Comment(**row) for row in reader])
-        self.stdout.write('Комментарии успешно добавлены')
-
     def _import_reviews(self):
-        with open('static/data/review.csv') as f:
+        fieldnames = ('id', 'title_id', 'text', 'author_id', 'score', 'pub_date')
+        with open('D:/Dev/api_yamdb/api_yamdb/static/data/review.csv', encoding="utf8") as f:
             reader = csv.DictReader(f)
+            reader.fieldnames = fieldnames
+            next(reader)
             Review.objects.bulk_create([Review(**row) for row in reader])
         self.stdout.write('Отзывы успешно добавлены')
 
-    def _import_relationships(self):
-        conn = sqlite3.connect('db.sqlite3')
-        cursor = conn.cursor()
-        with open('static/data/genre_title.csv') as f:
+    def _import_comments(self):
+        fieldnames = ('id', 'review_id', 'text', 'author_id', 'pub_date')
+        with open('D:/Dev/api_yamdb/api_yamdb/static/data/comments.csv', encoding="utf8") as f:
             reader = csv.DictReader(f)
-            headers = next(reader)
-            insert_query = "INSERT INTO rewiews_title_genre"
-        f"VALUES ({', '.join(['?'] * len(headers))});"
-        for row in reader:
-            cursor.execute(insert_query, row)
-        conn.commit()
-        conn.close()
+            reader.fieldnames = fieldnames
+            next(reader)
+            Comment.objects.bulk_create([Comment(**row) for row in reader])
+        self.stdout.write('Комментарии успешно добавлены')
+
+    def _import_relationships(self):
+        fieldnames = ('id', 'title_id', 'genre_id')
+        with open('D:/Dev/api_yamdb/api_yamdb/static/data/genre_title.csv', encoding="utf8") as f:
+            reader = csv.DictReader(f)
+            reader.fieldnames = fieldnames
+            next(reader)
+            for row in reader:
+                Title.objects.get(pk=row['title_id']).genre.add(Genre.objects.get(pk=row['genre_id']))
         self.stdout.write('Жанры связаны с произведениями')
 
     def handle(self, *args, **options):
@@ -77,6 +88,6 @@ class Command(BaseCommand):
             self._import_categories()
             self._import_titles()
             self._import_genres()
-            self._import_comments()
             self._import_reviews()
+            self._import_comments()
             self._import_relationships()
