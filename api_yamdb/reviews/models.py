@@ -10,7 +10,6 @@ User = get_user_model()
 class Title(models.Model):
     name = models.CharField('Название', max_length=256)
     year = models.IntegerField('Год')
-    rating = models.FloatField('Рейтинг', null=True, blank=True)
     description = models.TextField('Описание', blank=True)
     genre = models.ManyToManyField('Genre', blank=True, related_name='title')
     category = models.ForeignKey(

@@ -1,8 +1,10 @@
 from django_filters import rest_framework
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
-from django.db.models import Avg
-from rest_framework import filters, viewsets, permissions
+from rest_framework import filters, viewsets
+# from rest_framework.decorators import permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
@@ -17,6 +19,11 @@ from api.serializers import (
     TitlePostSerializer
 )
 from reviews.models import Title, Category, Genre, Review
+from users.permissions import IsAdminUser
+
+
+class ReaponsePaginator(PageNumberPagination):
+    page_size = 10
 
 
 class TitleFilter(rest_framework.FilterSet):
@@ -34,7 +41,7 @@ class TitleFilter(rest_framework.FilterSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
-    pagination_class = PageNumberPagination
+    pagination_class = ReaponsePaginator
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
 
@@ -43,54 +50,51 @@ class TitleViewSet(viewsets.ModelViewSet):
             return TitlePostSerializer
         return TitleSerializer
 
-    def retrieve(self, request, *args, **kwargs):
-        title = self.get_object()
-        average_score = title.reviews.aggregate(Avg('score'))['score__avg']
-        title.rating = average_score
-        serializer = self.get_serializer(title)
-        return Response(serializer.data)
-
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            queryset = queryset.annotate(
-                aggregate_rating=Avg('reviews__score')
-            )
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+    def get_permissions(self):
+        if self.action in ['create', 'destroy', 'partial_update']:
+            return (IsAdminUser(),)
+        return super().get_permissions()
 
+
+@action(methods=['get', 'post', 'delete'], detail=False)
 class CategoryViewSet(CreateListViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     lookup_field = 'slug'
-    pagination_class = PageNumberPagination
+    pagination_class = ReaponsePaginator
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
-
-    '''@permission_classes([IsAdminUser])
-    def create(self, request, *args, **kwargs):
-        return super().create(request, *args, **kwargs)
-    @permission_classes([IsAdminUser])
-    def delete(self, request, *args, **kwargs):
-        return super().delete(request, *args, **kwargs)'''
+    permission_classes = (IsAdminUser,)
 
     def get_permissions(self):
-        if self.action == 'create' or self.action == 'delete':
-            return (permissions.IsAdminUser,)
+        if self.action == 'list':
+            return (AllowAny(),)
         return super().get_permissions()
 
 
+@action(methods=['get', 'post', 'delete'], detail=False)
 class GenreViewSet(CreateListViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     lookup_field = 'slug'
-    pagination_class = PageNumberPagination
+    pagination_class = ReaponsePaginator
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
+    permission_classes = (IsAdminUser,)
+
+    def get_permissions(self):
+        if self.action == 'list':
+            return (AllowAny(),)
+        return super().get_permissions()
 
 
 class ReviewViewSet(viewsets.ModelViewSet):

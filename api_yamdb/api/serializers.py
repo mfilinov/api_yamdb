@@ -1,3 +1,4 @@
+from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 from reviews.models import Title, Category, Genre, Comment, Review
@@ -8,7 +9,6 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ('name', 'slug')
-        lookup_field = 'slug'
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -26,12 +26,11 @@ class TitlePostSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
         queryset=Category.objects.all(),
         slug_field='slug')
-    rating = serializers.FloatField(required=False, default=None)
     description = serializers.CharField(required=False)
 
     class Meta:
         model = Title
-        fields = ('id', 'name', 'year', 'rating', 'description',
+        fields = ('id', 'name', 'year', 'description',
                   'genre', 'category')
 
     def create(self, validated_data):
@@ -46,7 +45,7 @@ class TitlePostSerializer(serializers.ModelSerializer):
 class TitleSerializer(serializers.ModelSerializer):
     genre = serializers.SerializerMethodField()
     category = serializers.SerializerMethodField()
-    rating = serializers.FloatField(required=False, default=None)
+    rating = serializers.SerializerMethodField()
     description = serializers.CharField(required=False)
 
     class Meta:
@@ -63,6 +62,10 @@ class TitleSerializer(serializers.ModelSerializer):
         if category is not None:
             return {'name': category.name, 'slug': category.slug}
         return None
+
+    def get_rating(self, obj):
+        average_score = obj.reviews.aggregate(Avg('score'))['score__avg']
+        return average_score
 
     def create(self, validated_data):
         genres = validated_data.pop('genre')
