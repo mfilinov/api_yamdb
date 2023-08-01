@@ -22,7 +22,7 @@ from reviews.models import Title, Category, Genre, Review
 from users.permissions import IsAdminUser
 
 
-class ReaponsePaginator(PageNumberPagination):
+class ResponsePaginator(PageNumberPagination):
     page_size = 10
 
 
@@ -41,7 +41,7 @@ class TitleFilter(rest_framework.FilterSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
-    pagination_class = ReaponsePaginator
+    pagination_class = ResponsePaginator
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
 
@@ -70,7 +70,7 @@ class CategoryViewSet(CreateListViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     lookup_field = 'slug'
-    pagination_class = ReaponsePaginator
+    pagination_class = ResponsePaginator
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     permission_classes = (IsAdminUser,)
@@ -86,7 +86,7 @@ class GenreViewSet(CreateListViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     lookup_field = 'slug'
-    pagination_class = ReaponsePaginator
+    pagination_class = ResponsePaginator
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     permission_classes = (IsAdminUser,)
