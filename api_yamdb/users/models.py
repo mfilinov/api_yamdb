@@ -1,32 +1,35 @@
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import validate_email
 from django.db import models
-from django.utils.translation import gettext_lazy as _
 
 
 class User(AbstractUser):
     class Role(models.TextChoices):
-        USER = 'user',
-        MODERATOR = 'moderator',
-        ADMIN = 'admin',
+        USER = 'user', 'Пользователь'
+        MODERATOR = 'moderator', 'Модератор'
+        ADMIN = 'admin', 'Админ'
 
     email = models.EmailField(
-        _('email address'),
+        'email address',
         max_length=254,
         unique=True,
-        help_text=_(
+        help_text=(
             'Required. 254 characters or fewer. '
             'Letters, digits and @/./- only.'),
         validators=[validate_email],
         error_messages={
-            'unique': _("A user with that email already exists."),
+            'unique': 'Пользователь с таким email уже существует.',
         },
     )
 
-    bio = models.TextField(_('About'), blank=True)
+    bio = models.TextField('О себе', blank=True)
     role = models.CharField(
-        _('Choose a role'),
+        'Выберите роль',
         choices=Role.choices,
         default=Role.USER,
         max_length=128,
     )
+
+    class Meta:
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
