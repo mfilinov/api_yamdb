@@ -1,4 +1,5 @@
 import csv
+import sqlite3
 
 from django.core.management.base import BaseCommand
 
@@ -38,20 +39,34 @@ class Command(BaseCommand):
     def _import_genres(self):
         with open('static/data/genre.csv') as f:
             reader = csv.DictReader(f)
-            Title.objects.bulk_create([Genre(**row) for row in reader])
+            Genre.objects.bulk_create([Genre(**row) for row in reader])
         self.stdout.write('Жанры успешно добавлены')
 
     def _import_comments(self):
         with open('static/data/comments.csv') as f:
             reader = csv.DictReader(f)
-            Title.objects.bulk_create([Comment(**row) for row in reader])
+            Comment.objects.bulk_create([Comment(**row) for row in reader])
         self.stdout.write('Комментарии успешно добавлены')
 
     def _import_reviews(self):
         with open('static/data/review.csv') as f:
             reader = csv.DictReader(f)
-            Title.objects.bulk_create([Review(**row) for row in reader])
+            Review.objects.bulk_create([Review(**row) for row in reader])
         self.stdout.write('Отзывы успешно добавлены')
+
+    def _import_relationships(self):
+        conn = sqlite3.connect('db.sqlite3')
+        cursor = conn.cursor()
+        with open('static/data/genre_title.csv') as f:
+            reader = csv.DictReader(f)
+            headers = next(reader)
+            insert_query = "INSERT INTO rewiews_title_genre"
+        f"VALUES ({', '.join(['?'] * len(headers))});"
+        for row in reader:
+            cursor.execute(insert_query, row)
+        conn.commit()
+        conn.close()
+        self.stdout.write('Жанры связаны с произведениями')
 
     def handle(self, *args, **options):
         if options['delete']:
@@ -64,3 +79,4 @@ class Command(BaseCommand):
             self._import_genres()
             self._import_comments()
             self._import_reviews()
+            self._import_relationships()
