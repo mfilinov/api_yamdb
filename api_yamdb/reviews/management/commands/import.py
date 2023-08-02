@@ -1,5 +1,4 @@
 import csv
-import sqlite3
 
 from django.core.management.base import BaseCommand
 
@@ -19,14 +18,14 @@ class Command(BaseCommand):
         )
 
     def _import_users(self):
-        with open('D:/Dev/api_yamdb/api_yamdb/static/data/users.csv') as f:
+        with open('static/data/users.csv') as f:
             reader = csv.DictReader(f)
             User.objects.bulk_create([User(**row) for row in reader])
         self.stdout.write('Пользователи успешно добавлены')
 
     def _import_categories(self):
         fieldnames = ('id', 'name', 'slug')
-        with open('D:/Dev/api_yamdb/api_yamdb/static/data/category.csv', encoding="utf8") as f:
+        with open('static/data/category.csv', encoding="utf8") as f:
             reader = csv.DictReader(f)
             reader.fieldnames = fieldnames
             next(reader)
@@ -35,7 +34,7 @@ class Command(BaseCommand):
 
     def _import_titles(self):
         fieldnames = ('id', 'name', 'year', 'category_id')
-        with open('D:/Dev/api_yamdb/api_yamdb/static/data/titles.csv', encoding="utf8") as f:
+        with open('static/data/titles.csv', encoding="utf8") as f:
             reader = csv.DictReader(f)
             reader.fieldnames = fieldnames
             next(reader)
@@ -44,7 +43,7 @@ class Command(BaseCommand):
 
     def _import_genres(self):
         fieldnames = ('id', 'name', 'slug')
-        with open('D:/Dev/api_yamdb/api_yamdb/static/data/genre.csv', encoding="utf8") as f:
+        with open('static/data/genre.csv', encoding="utf8") as f:
             reader = csv.DictReader(f)
             reader.fieldnames = fieldnames
             next(reader)
@@ -52,8 +51,9 @@ class Command(BaseCommand):
         self.stdout.write('Жанры успешно добавлены')
 
     def _import_reviews(self):
-        fieldnames = ('id', 'title_id', 'text', 'author_id', 'score', 'pub_date')
-        with open('D:/Dev/api_yamdb/api_yamdb/static/data/review.csv', encoding="utf8") as f:
+        fieldnames = ('id', 'title_id', 'text',
+                      'author_id', 'score', 'pub_date')
+        with open('static/data/review.csv', encoding="utf8") as f:
             reader = csv.DictReader(f)
             reader.fieldnames = fieldnames
             next(reader)
@@ -62,7 +62,7 @@ class Command(BaseCommand):
 
     def _import_comments(self):
         fieldnames = ('id', 'review_id', 'text', 'author_id', 'pub_date')
-        with open('D:/Dev/api_yamdb/api_yamdb/static/data/comments.csv', encoding="utf8") as f:
+        with open('static/data/comments.csv', encoding="utf8") as f:
             reader = csv.DictReader(f)
             reader.fieldnames = fieldnames
             next(reader)
@@ -71,12 +71,14 @@ class Command(BaseCommand):
 
     def _import_relationships(self):
         fieldnames = ('id', 'title_id', 'genre_id')
-        with open('D:/Dev/api_yamdb/api_yamdb/static/data/genre_title.csv', encoding="utf8") as f:
+        with open('static/data/genre_title.csv', encoding="utf8") as f:
             reader = csv.DictReader(f)
             reader.fieldnames = fieldnames
             next(reader)
             for row in reader:
-                Title.objects.get(pk=row['title_id']).genre.add(Genre.objects.get(pk=row['genre_id']))
+                Title.objects.get(
+                    pk=row['title_id']).genre.add(
+                    Genre.objects.get(pk=row['genre_id']))
         self.stdout.write('Жанры связаны с произведениями')
 
     def handle(self, *args, **options):
