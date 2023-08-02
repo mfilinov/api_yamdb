@@ -10,8 +10,14 @@ User = get_user_model()
 class Title(models.Model):
     name = models.CharField('Название', max_length=256)
     year = models.IntegerField('Год')
-    rating = models.FloatField('Рейтинг')
     description = models.TextField('Описание', blank=True)
+    genre = models.ManyToManyField('Genre', blank=True, related_name='title')
+    category = models.ForeignKey(
+        'Category',
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='title')
 
     class Meta:
         verbose_name = 'произведение'
@@ -24,31 +30,25 @@ class Title(models.Model):
 class Category(models.Model):
     name = models.CharField('Категория', max_length=256)
     slug = models.SlugField('Идентификатор', unique=True, max_length=50)
-    title = models.ForeignKey(
-        Title,
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name='category')
 
     class Meta:
         verbose_name = 'категория'
         verbose_name_plural = 'Категории'
 
     def __str__(self):
-        return self.name
+        return self.slug
 
 
 class Genre(models.Model):
     name = models.CharField('Жанр', max_length=256)
     slug = models.SlugField('Идентификатор', unique=True, max_length=50)
-    title = models.ManyToManyField(Title, related_name='genre')
 
     class Meta:
         verbose_name = 'жанр'
         verbose_name_plural = 'Жанры'
 
     def __str__(self):
-        return self.name
+        return self.slug
 
 
 class Review(models.Model):
