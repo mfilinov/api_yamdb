@@ -19,7 +19,7 @@ from api.serializers import (
     TitlePostSerializer
 )
 from reviews.models import Title, Category, Genre, Review
-from users.permissions import IsAdminUser
+from users.permissions import IsAdminUser, IsAuthorOrAdminOrReadOnly
 
 
 class ResponsePaginator(PageNumberPagination):
@@ -101,6 +101,14 @@ class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели отзывов Review."""
 
     serializer_class = ReviewSerializer
+    pagination_class = ResponsePaginator
+
+    def get_permissions(self):
+        if self.action in ['retrieve', 'list']:
+            return (AllowAny(),)
+        if self.action in ['partial_update', 'destroy']:
+            return (IsAuthorOrAdminOrReadOnly(),)
+        return super().get_permissions()
 
     def get_title(self):
         """Возвращает объект текущего произведения."""
@@ -122,6 +130,14 @@ class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели комментариев Comment."""
 
     serializer_class = CommentSerializer
+    pagination_class = ResponsePaginator
+
+    def get_permissions(self):
+        if self.action in ['retrieve', 'list']:
+            return (AllowAny(),)
+        if self.action in ['update', 'partial_update', 'destroy']:
+            return (IsAuthorOrAdminOrReadOnly(),)
+        return super().get_permissions()
 
     def get_review(self):
         """Возвращает объект текущего отзыва."""
