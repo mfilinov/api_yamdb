@@ -2,13 +2,11 @@ from django_filters import rest_framework
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from rest_framework import filters, viewsets
-# from rest_framework.decorators import permission_classes
-from rest_framework.permissions import AllowAny
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
-from .mixins import CreateListViewSet
+from .mixins import CreateListDestroyViewSet
 
 from api.serializers import (
     CategorySerializer,
@@ -19,7 +17,8 @@ from api.serializers import (
     TitlePostSerializer
 )
 from reviews.models import Title, Category, Genre, Review
-from users.permissions import IsAdminUser
+from users.permissions import (IsAdminUser, IsModeratorUser, IsOwnerOrReadOnly,
+                               IsAdminUserOrReadOnly)
 
 
 class ResponsePaginator(PageNumberPagination):
@@ -44,6 +43,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     pagination_class = ResponsePaginator
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
+    permission_classes = [IsAdminUserOrReadOnly]
 
     def get_serializer_class(self):
         if self.action in ['create', 'partial_update']:
@@ -59,48 +59,35 @@ class TitleViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    def get_permissions(self):
-        if self.action in ['create', 'destroy', 'partial_update']:
-            return (IsAdminUser(),)
-        return super().get_permissions()
-
 
 @action(methods=['get', 'post', 'delete'], detail=False)
-class CategoryViewSet(CreateListViewSet):
+class CategoryDestroyViewSet(CreateListDestroyViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     lookup_field = 'slug'
     pagination_class = ResponsePaginator
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
-    permission_classes = (IsAdminUser,)
-
-    def get_permissions(self):
-        if self.action == 'list':
-            return (AllowAny(),)
-        return super().get_permissions()
+    permission_classes = [IsAdminUserOrReadOnly]
 
 
 @action(methods=['get', 'post', 'delete'], detail=False)
-class GenreViewSet(CreateListViewSet):
+class GenreDestroyViewSet(CreateListDestroyViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     lookup_field = 'slug'
     pagination_class = ResponsePaginator
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
-    permission_classes = (IsAdminUser,)
-
-    def get_permissions(self):
-        if self.action == 'list':
-            return (AllowAny(),)
-        return super().get_permissions()
+    permission_classes = [IsAdminUserOrReadOnly]
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели отзывов Review."""
 
     serializer_class = ReviewSerializer
+    pagination_class = ResponsePaginator
+    permission_classes = [IsOwnerOrReadOnly | IsAdminUser | IsModeratorUser]
 
     def get_title(self):
         """Возвращает объект текущего произведения."""
@@ -108,7 +95,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Возвращает queryset c отзывами для текущего произведения."""
-        return self.get_title().reviews.all()
+        return self.get_title().reviews.select_related('author')
 
     def perform_create(self, serializer):
         """Создает отзыв для текущего произведения."""
@@ -122,6 +109,8 @@ class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели комментариев Comment."""
 
     serializer_class = CommentSerializer
+    pagination_class = ResponsePaginator
+    permission_classes = [IsOwnerOrReadOnly | IsAdminUser | IsModeratorUser]
 
     def get_review(self):
         """Возвращает объект текущего отзыва."""
@@ -129,7 +118,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Возвращает queryset c комментариями для текущего отзыва."""
-        return self.get_review().comments.all()
+        return self.get_review().comments.select_related('author')
 
     def perform_create(self, serializer):
         """Создает комментарий для текущего отзыва"""
