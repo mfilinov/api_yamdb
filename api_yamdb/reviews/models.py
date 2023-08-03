@@ -9,13 +9,20 @@ User = get_user_model()
 
 class Title(models.Model):
     name = models.CharField('Название', max_length=256)
-    year = models.IntegerField('Год')
-    rating = models.FloatField('Рейтинг')
+    year = models.PositiveIntegerField('Год')
     description = models.TextField('Описание', blank=True)
+    genre = models.ManyToManyField('Genre', blank=True, related_name='title')
+    category = models.ForeignKey(
+        'Category',
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='title')
 
     class Meta:
         verbose_name = 'произведение'
         verbose_name_plural = 'Произведения'
+        ordering = ['-id']
 
     def __str__(self):
         return self.name
@@ -24,15 +31,11 @@ class Title(models.Model):
 class Category(models.Model):
     name = models.CharField('Категория', max_length=256)
     slug = models.SlugField('Идентификатор', unique=True, max_length=50)
-    title = models.ForeignKey(
-        Title,
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name='category')
 
     class Meta:
         verbose_name = 'категория'
         verbose_name_plural = 'Категории'
+        ordering = ['-id']
 
     def __str__(self):
         return self.name
@@ -41,11 +44,11 @@ class Category(models.Model):
 class Genre(models.Model):
     name = models.CharField('Жанр', max_length=256)
     slug = models.SlugField('Идентификатор', unique=True, max_length=50)
-    title = models.ManyToManyField(Title, related_name='genre')
 
     class Meta:
         verbose_name = 'жанр'
         verbose_name_plural = 'Жанры'
+        ordering = ['-id']
 
     def __str__(self):
         return self.name
@@ -54,7 +57,6 @@ class Genre(models.Model):
 class Review(models.Model):
     """Модель отзыва на произведение."""
     text = models.TextField(verbose_name='Текст отзыва')
-    #  Оценка произведения.
     score = models.PositiveIntegerField(
         verbose_name='Оценка',
         validators=[
@@ -62,14 +64,12 @@ class Review(models.Model):
             MaxValueValidator(10, message='Ваша оценка выше допустимой')
         ]
     )
-    #  Наименование автора. Переделать после создания модеди User.
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='reviews',
         verbose_name='Автор'
     )
-    #  Наименование произведения на которое пишется отзыв.
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
@@ -106,7 +106,6 @@ class Comment(models.Model):
         related_name='comments',
         verbose_name='Автор'
     )
-    #  Под каким отзывом пишется комментарий.
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
