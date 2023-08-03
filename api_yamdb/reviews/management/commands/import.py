@@ -32,9 +32,10 @@ class Command(BaseCommand):
     def _import_titles(self):
         with open('static/data/titles.csv') as f:
             reader = csv.DictReader(f)
-            Title.objects.bulk_create([Title(
-                **{'category_id' if k == 'category' else k: v for k, v in
-                   row.items()}) for row in reader])
+            Title.objects.bulk_create([
+                Title(**{'category_id' if k == 'category'
+                         else k: v for k, v in row.items()})
+                for row in reader])
         self.stdout.write('Статьи успешно добавлены')
 
     def _import_genres(self):
@@ -55,9 +56,9 @@ class Command(BaseCommand):
     def _import_comments(self):
         with open('static/data/comments.csv') as f:
             reader = csv.DictReader(f)
-            Comment.objects.bulk_create([Comment(
-                **{'author_id' if k == 'author'
-                   else k: v for k, v in row.items()})
+            Comment.objects.bulk_create([
+                Comment(**{'author_id' if k == 'author'
+                           else k: v for k, v in row.items()})
                 for row in reader])
         self.stdout.write('Комментарии успешно добавлены')
 
