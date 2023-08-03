@@ -43,6 +43,7 @@ class SignupViewSet(CreateModelMixin, GenericViewSet):
 
 class TokenView(APIView):
     permission_classes = [AllowAny]
+
     def post(self, request, *args, **kwargs):
         serializer = TokenSerializer(data=request.data)
         if serializer.is_valid():
