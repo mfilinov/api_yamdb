@@ -61,7 +61,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 
 @action(methods=['get', 'post', 'delete'], detail=False)
-class CategoryDestroyViewSet(CreateListDestroyViewSet):
+class CategoryViewSet(CreateListDestroyViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     lookup_field = 'slug'
@@ -72,7 +72,7 @@ class CategoryDestroyViewSet(CreateListDestroyViewSet):
 
 
 @action(methods=['get', 'post', 'delete'], detail=False)
-class GenreDestroyViewSet(CreateListDestroyViewSet):
+class GenreViewSet(CreateListDestroyViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     lookup_field = 'slug'
