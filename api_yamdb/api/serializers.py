@@ -35,9 +35,9 @@ class TitlePostSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         genres = validated_data.pop('genre')
         title = Title.objects.create(**validated_data)
-        if Genre.objects.filter(slug__in=genres).exists():
-            title.genre.set(Genre.objects.filter(slug__in=genres))
-            return title
+        for genre in genres:
+            if Genre.objects.filter(slug=genre.slug).exists():
+                title.genre.add(genre)
         return title
 
 
