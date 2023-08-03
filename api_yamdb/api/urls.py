@@ -6,8 +6,8 @@ from users.views import (
     TokenView,
     UsersViewSet,
     CurrentUserView)
-from .views import (CommentViewSet, ReviewViewSet,
-                    TitleViewSet, CategoryDestroyViewSet, GenreDestroyViewSet)
+from .views import (CommentViewSet, ReviewViewSet, TitleViewSet,
+                    CategoryViewSet, GenreViewSet)
 
 router = routers.DefaultRouter()
 router.register(
@@ -27,12 +27,12 @@ router.register(
 )
 router.register(
     r'categories',
-    CategoryDestroyViewSet,
+    CategoryViewSet,
     basename='categories'
 )
 router.register(
     r'genres',
-    GenreDestroyViewSet,
+    GenreViewSet,
     basename='genres'
 )
 router.register(
