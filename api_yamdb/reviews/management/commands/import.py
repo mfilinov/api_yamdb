@@ -1,6 +1,7 @@
 import csv
 
 from django.core.management.base import BaseCommand
+from django.db import transaction
 
 from reviews.models import Category, Title, Genre, Review, Comment
 from users.models import User
@@ -70,6 +71,7 @@ class Command(BaseCommand):
                 Title.objects.get(pk=row['title_id']).genre.add(genre)
         self.stdout.write('Жанры связаны с произведениями')
 
+    @transaction.atomic
     def handle(self, *args, **options):
         if options['delete']:
             User.objects.all().delete()

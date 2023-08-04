@@ -1,11 +1,10 @@
-from django_filters import rest_framework
+from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from rest_framework import filters, viewsets
-from rest_framework.decorators import action
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.response import Response
+from rest_framework.permissions import SAFE_METHODS
 
+from .filters import TitleFilter
 from .mixins import CreateListDestroyViewSet
 
 from api.serializers import (
@@ -13,54 +12,32 @@ from api.serializers import (
     CommentSerializer,
     GenreSerializer,
     ReviewSerializer,
-    TitleSerializer,
-    TitlePostSerializer
+    TitleSerializer, TitleGetSerializer,
 )
 from reviews.models import Title, Category, Genre, Review
 from users.permissions import (IsAdminUser, IsModeratorUser, IsOwnerOrReadOnly,
                                IsAdminUserOrReadOnly)
-
-
-class ResponsePaginator(PageNumberPagination):
-    page_size = 10
-
-
-class TitleFilter(rest_framework.FilterSet):
-    genre = rest_framework.CharFilter(field_name='genre__slug',
-                                      lookup_expr='iexact')
-    category = rest_framework.CharFilter(field_name='category__slug',
-                                         lookup_expr='iexact')
-    year = rest_framework.NumberFilter(field_name='year', lookup_expr='iexact')
-    name = rest_framework.CharFilter(field_name='name', lookup_expr='iexact')
-
-    class Meta:
-        model = Title
-        fields = ['genre', 'category', 'year', 'name']
+from .paginatiors import ResponsePaginator
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
+    # Запрещен method PUT
+    http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options',
+                         'trace']
+    # Order необходим чтобы не было UnorderedObjectListWarning
+    queryset = Title.objects.annotate(
+        rating=Avg('reviews__score')).order_by('id')
     pagination_class = ResponsePaginator
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
     permission_classes = [IsAdminUserOrReadOnly]
 
     def get_serializer_class(self):
-        if self.action in ['create', 'partial_update']:
-            return TitlePostSerializer
+        if self.request.method in SAFE_METHODS:
+            return TitleGetSerializer
         return TitleSerializer
 
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
 
-
-@action(methods=['get', 'post', 'delete'], detail=False)
 class CategoryViewSet(CreateListDestroyViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -71,7 +48,6 @@ class CategoryViewSet(CreateListDestroyViewSet):
     permission_classes = [IsAdminUserOrReadOnly]
 
 
-@action(methods=['get', 'post', 'delete'], detail=False)
 class GenreViewSet(CreateListDestroyViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
