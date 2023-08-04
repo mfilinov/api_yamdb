@@ -8,8 +8,7 @@ class IsAdminUser(BasePermission):
     def has_permission(self, request, view):
         is_admin = bool(hasattr(request.user, 'role')
                         and request.user.role == User.Role.ADMIN)
-        is_superuser = bool(request.user.is_superuser)
-        return is_admin or is_superuser
+        return is_admin or request.user.is_superuser
 
     def has_object_permission(self, request, view, obj):
         return self.has_permission(request, view)
@@ -41,5 +40,4 @@ class IsOwnerOrReadOnly(BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:
             return True
-        is_owner = bool(obj.author == request.user)
-        return is_owner
+        return obj.author == request.user
