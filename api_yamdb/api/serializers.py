@@ -1,78 +1,48 @@
-from django.db.models import Avg
 from rest_framework import serializers
+from rest_framework.relations import SlugRelatedField
+
 from reviews.models import Title, Category, Genre, Comment, Review
 
 
 class CategorySerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Category
         fields = ('name', 'slug')
 
 
 class GenreSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Genre
         fields = ('name', 'slug')
 
 
-class TitlePostSerializer(serializers.ModelSerializer):
-    genre = serializers.SlugRelatedField(
-        queryset=Genre.objects.all(),
-        many=True,
-        slug_field='slug')
-    category = serializers.SlugRelatedField(
-        queryset=Category.objects.all(),
-        slug_field='slug')
-    description = serializers.CharField(required=False)
+class TitleGetSerializer(serializers.ModelSerializer):
+    genre = GenreSerializer(many=True, read_only=True)
+    category = CategorySerializer(read_only=True)
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Title
-        fields = ('id', 'name', 'year', 'description',
-                  'genre', 'category')
-
-    def create(self, validated_data):
-        genres = validated_data.pop('genre')
-        title = Title.objects.create(**validated_data)
-        for genre in genres:
-            if Genre.objects.filter(slug=genre.slug).exists():
-                title.genre.add(genre)
-        return title
+        fields = (
+            'id', 'name', 'year', 'rating', 'description', 'genre', 'category')
 
 
 class TitleSerializer(serializers.ModelSerializer):
-    genre = serializers.SerializerMethodField()
-    category = serializers.SerializerMethodField()
-    rating = serializers.SerializerMethodField()
-    description = serializers.CharField(required=False)
+    genre = SlugRelatedField(
+        many=True,
+        queryset=Genre.objects.all(),
+        slug_field='slug')
+    category = SlugRelatedField(
+        queryset=Category.objects.all(),
+        slug_field='slug')
 
     class Meta:
         model = Title
-        fields = ('id', 'name', 'year', 'rating', 'description',
-                  'genre', 'category')
+        fields = ('name', 'year', 'description', 'genre', 'category')
 
-    def get_genre(self, obj):
-        genres = obj.genre.all()
-        return [{'name': genre.name, 'slug': genre.slug} for genre in genres]
-
-    def get_category(self, obj):
-        category = obj.category
-        if category is not None:
-            return {'name': category.name, 'slug': category.slug}
-        return None
-
-    def get_rating(self, obj):
-        average_score = obj.reviews.aggregate(Avg('score'))['score__avg']
-        return average_score
-
-    def create(self, validated_data):
-        genres = validated_data.pop('genre')
-        title = Title.objects.create(**validated_data)
-        if Genre.objects.filter(slug__in=genres).exists():
-            title.genre.set(Genre.objects.filter(slug__in=genres))
-            return title
-        return title
+    def to_representation(self, instance):
+        serializer = TitleGetSerializer(instance)
+        return serializer.data
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -90,8 +60,8 @@ class ReviewSerializer(serializers.ModelSerializer):
         """Запрещает дублирование отзыва."""
         if self.context.get('request').method == 'POST':
             if Review.objects.filter(
-                author=self.context.get('request').user,
-                title=self.context.get('view').kwargs.get('title_id')
+                    author=self.context.get('request').user,
+                    title=self.context.get('view').kwargs.get('title_id')
             ).exists():
                 raise serializers.ValidationError(
                     'Вы уже оставляли отзыв на это произведение.'
