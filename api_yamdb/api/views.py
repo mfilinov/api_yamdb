@@ -1,11 +1,10 @@
-from django_filters import rest_framework
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from rest_framework import filters, viewsets
 from rest_framework.decorators import action
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
+from .filters import TitleFilter
 from .mixins import CreateListDestroyViewSet
 
 from api.serializers import (
@@ -19,23 +18,7 @@ from api.serializers import (
 from reviews.models import Title, Category, Genre, Review
 from users.permissions import (IsAdminUser, IsModeratorUser, IsOwnerOrReadOnly,
                                IsAdminUserOrReadOnly)
-
-
-class ResponsePaginator(PageNumberPagination):
-    page_size = 10
-
-
-class TitleFilter(rest_framework.FilterSet):
-    genre = rest_framework.CharFilter(field_name='genre__slug',
-                                      lookup_expr='iexact')
-    category = rest_framework.CharFilter(field_name='category__slug',
-                                         lookup_expr='iexact')
-    year = rest_framework.NumberFilter(field_name='year', lookup_expr='iexact')
-    name = rest_framework.CharFilter(field_name='name', lookup_expr='iexact')
-
-    class Meta:
-        model = Title
-        fields = ['genre', 'category', 'year', 'name']
+from .paginatiors import ResponsePaginator
 
 
 class TitleViewSet(viewsets.ModelViewSet):

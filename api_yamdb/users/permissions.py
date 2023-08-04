@@ -6,9 +6,9 @@ User = get_user_model()
 
 class IsAdminUser(BasePermission):
     def has_permission(self, request, view):
-        is_admin = bool(request.user.is_authenticated
+        is_admin = bool(hasattr(request.user, 'role')
                         and request.user.role == User.Role.ADMIN)
-        is_superuser = bool(request.user.is_staff)
+        is_superuser = bool(request.user.is_superuser)
         return is_admin or is_superuser
 
     def has_object_permission(self, request, view, obj):
@@ -24,7 +24,7 @@ class IsAdminUserOrReadOnly(IsAdminUser):
 
 class IsModeratorUser(BasePermission):
     def has_permission(self, request, view):
-        return bool(request.user.is_authenticated
+        return bool(hasattr(request.user, 'role')
                     and request.user.role == User.Role.MODERATOR)
 
     def has_object_permission(self, request, view, obj):
@@ -41,6 +41,5 @@ class IsOwnerOrReadOnly(BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:
             return True
-        is_owner = bool(request.user.is_authenticated
-                        and obj.author == request.user)
+        is_owner = bool(obj.author == request.user)
         return is_owner
